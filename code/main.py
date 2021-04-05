@@ -2,8 +2,9 @@ import csv
 import json
 import logging
 import time
+import os
 
-from util.util import Config, News
+from util.util import Config, News, relative_path
 
 from news_content_collection import NewsContentCollector
 from retweet_collection import RetweetCollector
@@ -36,7 +37,7 @@ class DataCollectorFactory:
 
 
 def init_config():
-    json_object = json.load(open("config.json"))
+    json_object = json.load(open(relative_path("/config.json")))
 
     config = Config(json_object["dataset_dir"], json_object["dump_location"], json_object["tweet_keys_file"],
                     int(json_object["num_process"]))

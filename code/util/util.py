@@ -105,3 +105,6 @@ def multiprocess_data_collection(function_reference, data_list, args, config: Co
 
     pool.close()
     pool.join()
+
+def relative_path(file_name):
+    return os.path.abspath(os.getcwd()) + file_name
