@@ -17,7 +17,7 @@ class PolitifactSpider(scrapy.Spider):
     custom_settings = {
         'DOWNLOAD_DELAY': .5,
         'DEPTH_LIMIT': 10,
-        'FEED_FORMAT': 'json',
+        'FEED_FORMAT': 'jsonlines',
         'FEED_URI': 'dataset/politifact_' + datetime.datetime.today().strftime('%y%m%d%H%M%S') + '.json'
     }
 

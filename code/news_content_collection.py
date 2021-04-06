@@ -21,6 +21,7 @@ def crawl_link_article(url):
             try:
                 article = Article('http://' + url)
                 article.download()
+                # TODO: check status for errors
                 time.sleep(2)
                 article.parse()
                 flag = True
