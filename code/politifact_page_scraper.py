@@ -20,13 +20,15 @@ class PolitifactPageScraper:
         content = page_soup.select('article.m-textblock')[0].text
         # get page links
         sources = page_soup.select('#sources .m-superbox__content a')
+        # get page date
+        page_date = page_soup.select('.m-author__date')[0].text
 
         if (len(sources) > 0):
             source = sources[0]['href']
         else:
             source = None
 
-        return {'_title': title, '_content': content, '_source': source}
+        return {'_title': title, '_content': content, '_source': source, '_date': page_date}
 
     def scrape_pages_from_file(self, json_file_path):
         p = pathlib.PurePath(json_file_path)

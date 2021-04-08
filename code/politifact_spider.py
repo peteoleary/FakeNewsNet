@@ -2,6 +2,10 @@ import scrapy
 from urllib import parse
 from bs4 import BeautifulSoup
 import datetime
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # take environment variables from .env.
 
 class PolitifactItem(scrapy.Item):
     _type = scrapy.Field()
@@ -15,8 +19,8 @@ class PolitifactSpider(scrapy.Spider):
         'https://www.politifact.com/factchecks/list/?ruling=false'
     ]
     custom_settings = {
-        'DOWNLOAD_DELAY': .5,
-        'DEPTH_LIMIT': 10,
+        'DOWNLOAD_DELAY': os.getenv('DOWNLOAD_DELAY'),
+        'DEPTH_LIMIT': os.getenv('DEPTH_LIMIT'),
         'FEED_FORMAT': 'jsonlines',
         'FEED_URI': 'dataset/politifact_' + datetime.datetime.today().strftime('%y%m%d%H%M%S') + '.json'
     }
