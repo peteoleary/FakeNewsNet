@@ -54,9 +54,9 @@ class ContentCrawler:
                 time.sleep(try_sleep)
 
         return list(map(lambda tweet: {
-                'tweet_user': tweet['user']['screen_name'], 
-                'tweet_id': tweet['id'],
-                'tag': tag
+                '_tweet_user': tweet['user']['screen_name'], 
+                '_tweet_id': tweet['id'],
+                '_tag': tag
             }, search_result['statuses']))
 
     def transform_title(self, title_string):
@@ -74,13 +74,13 @@ class ContentCrawler:
         # shorten Twitter URL
         # title = self.transform_title(item['_title'])
         title = re.sub('\W+',' ', item['_title'] )
-        title_search_results = self.twitter_result(title)
+        title_search_results = self.twitter_result(title, 'title')
         print("title: " + title)
         self.print_search_result("title_search", title_search_results)
         # canonical_url = self.canonical_url(item['_source'])
         canonical_url = item['_source']
         if canonical_url:
-            url_search_results = self.twitter_result("url:%s" % parse.quote(canonical_url))
+            url_search_results = self.twitter_result("url:%s" % parse.quote(canonical_url), 'url')
             self.print_search_result("url_search", url_search_results)
             if (len(url_search_results) > 0):
                 title_search_results.append(url_search_results)
