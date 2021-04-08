@@ -66,7 +66,7 @@ class ContentCrawler:
 
     def print_search_result(self, search_name, search_result):
         for tweet in search_result:
-            print("%s: http://www.twitter.com/%s/status/%s" % (search_name, tweet['tweet_user'], tweet['tweet_id']) + "\n")
+            print("%s: http://www.twitter.com/%s/status/%s" % (search_name, tweet['_tweet_user'], tweet['_tweet_id']) + "\n")
 
     def crawl_content(self, item):
         # remove special characters
@@ -105,6 +105,7 @@ class ContentCrawler:
                         writer.write(item)
                     except Exception as e:
                         print("error %s scraping page %s" % (e, link))
+                    
                     time.sleep(.5)
 
 if __name__ == "__main__":
