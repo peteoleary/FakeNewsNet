@@ -56,7 +56,10 @@ class ContentCrawler:
         return list(map(lambda tweet: {
                 '_tweet_user': tweet['user']['screen_name'], 
                 '_tweet_id': tweet['id'],
-                '_tag': tag
+                '_tag': tag,
+                '_created_at': tweet['created_at'],
+                '_in_reply_to_status_id_str' : tweet['in_reply_to_status_id_str'],
+                'in_reply_to_screen_name' : tweet['in_reply_to_screen_name']
             }, search_result['statuses']))
 
     def transform_title(self, title_string):
