@@ -11,6 +11,7 @@ import os
 import corenlp
 from datetime import datetime
 import re
+import dateparser
 
 load_dotenv()  # take environment variables from .env.
 
@@ -57,10 +58,14 @@ class ContentCrawler:
                 '_tweet_user': tweet['user']['screen_name'], 
                 '_tweet_id': tweet['id'],
                 '_tag': tag,
-                '_created_at': tweet['created_at'],
+                '_created_at': self.parse_date(tweet['created_at']),
                 '_in_reply_to_status_id_str' : tweet['in_reply_to_status_id_str'],
                 'in_reply_to_screen_name' : tweet['in_reply_to_screen_name']
             }, search_result['statuses']))
+
+    def parse_date(self, date_string):
+        new_date  = dateparser.parse(date_string)
+        return new_date.strftime('%y%m%d%H%M%S')
 
     def transform_title(self, title_string):
         ann = self.corenlp_client.annotate(title_string)
@@ -71,6 +76,7 @@ class ContentCrawler:
         for tweet in search_result:
             print("%s %s: http://www.twitter.com/%s/status/%s" % (search_name, tweet['_created_at'], tweet['_tweet_user'], tweet['_tweet_id']) + "\n")
 
+
     def crawl_content(self, item):
         # remove special characters
         # search for URL
@@ -78,7 +84,7 @@ class ContentCrawler:
         # title = self.transform_title(item['_title'])
         title = re.sub('\W+',' ', item['_title'] )
         title_search_results = self.twitter_result(title, 'title')
-        print("title: " + title)
+        print("title %s: %s" % (self.parse_date(item['_date']), title))
         self.print_search_result("title_search", title_search_results)
         # canonical_url = self.canonical_url(item['_source'])
         canonical_url = item['_source']
