@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import datetime
 from dotenv import load_dotenv
 import os
+from util.util import make_news_id
 
 load_dotenv()  # take environment variables from .env.
 
@@ -11,6 +12,7 @@ class PolitifactItem(scrapy.Item):
     _type = scrapy.Field()
     _link = scrapy.Field()
     _ruling = scrapy.Field()
+    _news_id = scrapy.Field()
 
 class PolitifactSpider(scrapy.Spider):
     name = 'politifact'
@@ -22,7 +24,7 @@ class PolitifactSpider(scrapy.Spider):
         'DOWNLOAD_DELAY': os.getenv('DOWNLOAD_DELAY'),
         'DEPTH_LIMIT': os.getenv('DEPTH_LIMIT'),
         'FEED_FORMAT': 'jsonlines',
-        'FEED_URI': 'dataset/politifact_' + datetime.datetime.today().strftime('%y%m%d%H%M%S') + '.json'
+        'FEED_URI': 'dataset/politifact_' + datetime.datetime.today().strftime('%y%m%d%H%M%S') + '_1.json'
     }
 
 
@@ -37,7 +39,7 @@ class PolitifactSpider(scrapy.Spider):
             link_soup = BeautifulSoup(item_selector[1].extract())
             yield PolitifactItem(_type = type_soup.text.strip(), 
                 _link = "%s://%s%s" % (url_split.scheme, url_split.hostname, link_soup.find('a').attrs['href']), 
-                _ruling = q_params['ruling'])
+                _ruling = q_params['ruling'], _news_id = make_news_id('politifact', response.url))
 
         if (not 'page' in q_params.keys()):
             q_params['page'] = '1'

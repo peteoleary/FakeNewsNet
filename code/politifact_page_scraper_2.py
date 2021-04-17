@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import requests
 import jsonlines
 import sys
-import time
 import pathlib
 
 class PolitifactPageScraper:
@@ -32,7 +31,7 @@ class PolitifactPageScraper:
 
     def scrape_pages_from_file(self, json_file_path):
         p = pathlib.PurePath(json_file_path)
-        with jsonlines.open(p.with_name(p.stem + '_contents.json'), mode='w', flush = True ) as writer:
+        with jsonlines.open(p.with_name(p.stem + '_2.json'), mode='w', flush = True ) as writer:
             with jsonlines.open(json_file_path) as reader:
                 for obj in reader:
                     try:
@@ -43,7 +42,6 @@ class PolitifactPageScraper:
                         writer.write(page_contents)
                     except Exception as e:
                         print("error %s scraping page %s" % (e, page_contents['_link']))
-                    time.sleep(.25)
 
 if __name__ == "__main__":
     PolitifactPageScraper().scrape_pages_from_file(sys.argv[1])

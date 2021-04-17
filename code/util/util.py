@@ -3,8 +3,10 @@ import errno
 import os
 import sys
 from multiprocessing.pool import Pool
-
+import hashlib
 from tqdm import tqdm
+import jsonlines
+import pathlib
 
 from util.TwythonConnector import TwythonConnector
 
@@ -108,3 +110,14 @@ def multiprocess_data_collection(function_reference, data_list, args, config: Co
 
 def relative_path(file_name):
     return os.path.abspath(os.getcwd()) + file_name
+
+def make_news_id(prefix, url):
+    result = hashlib.md5(url.encode())
+    return prefix + '_' + result.hexdigest()
+
+def open_read_write_json_file(json_file_path, stage, callback):
+    p = pathlib.PurePath(json_file_path)
+    with jsonlines.open(p.with_name(p.stem + "_%s.json" % stage), mode='w', flush = True ) as writer:
+        with jsonlines.open(json_file_path) as reader:
+            for item in reader:
+                writer.write(callback(item))

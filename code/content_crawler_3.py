@@ -1,24 +1,20 @@
 from urllib import parse
 from bs4 import BeautifulSoup
 import requests
-import jsonlines
 import sys
 import time
-import pathlib
 from twython import Twython, TwythonRateLimitError
 from dotenv import load_dotenv
 import os
 import corenlp
-from datetime import datetime
 import re
-import dateparser
 
 load_dotenv()  # take environment variables from .env.
 
 class ContentCrawler:
 
     def __init__(self):
-        self.twitter = Twython(os.getenv('TWITTER_APP_KEY'), access_token=os.getenv('TWITTER_ACCESS_TOKEN'))
+        self.twitter = Twython(os.getenv('TWITTER_APP_KEY'), access_token=os.getenv('TWITTER_BEARER_TOKEN'))
         self.corenlp_client = corenlp.CoreNLPClient(annotators="tokenize ssplit pos lemma ner depparse".split())
     #{
         # "_title": "“Government imposed lockdowns do NOT reduce [COVID-19] cases or stop spikes.”",
@@ -43,29 +39,6 @@ class ContentCrawler:
             "www.tiktok.com": lambda: without_query
         }
         return switcher.get(url_split.hostname, lambda: url)()
-
-    def twitter_result(self, search_string, tag = None):
-        search_result = None
-        while search_result is None:
-            try:
-                search_result = self.twitter.search(q = search_string)
-            except TwythonRateLimitError as e:
-                try_sleep = int(e.retry_after) - time.time_ns()/1000000000
-                print("Twitter rate limit, sleeping for %d seconds" % try_sleep)
-                time.sleep(try_sleep)
-
-        return list(map(lambda tweet: {
-                '_tweet_user': tweet['user']['screen_name'], 
-                '_tweet_id': tweet['id'],
-                '_tag': tag,
-                '_created_at': self.parse_date(tweet['created_at']),
-                '_in_reply_to_status_id_str' : tweet['in_reply_to_status_id_str'],
-                'in_reply_to_screen_name' : tweet['in_reply_to_screen_name']
-            }, search_result['statuses']))
-
-    def parse_date(self, date_string):
-        new_date  = dateparser.parse(date_string)
-        return new_date.strftime('%y%m%d%H%M%S')
 
     def transform_title(self, title_string):
         ann = self.corenlp_client.annotate(title_string)
@@ -99,10 +72,10 @@ class ContentCrawler:
         # TODO: transform data and try out old code!   
         return
 
-    # TODO: this function can be moved to a shared file
+    # TODO: use util.open_read_write_json_file
     def crawl_content_from_file(self, json_file_path):
         p = pathlib.PurePath(json_file_path)
-        with jsonlines.open(p.with_name(p.stem + '_details.json'), mode='w', flush = True ) as writer:
+        with jsonlines.open(p.with_name(p.stem + '_3.json'), mode='w', flush = True ) as writer:
             with jsonlines.open(json_file_path) as reader:
                 for item in reader:
                     link = item['_link']
