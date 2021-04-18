@@ -13,6 +13,7 @@ class TwitterAPIV2:
     def __init__(self):
         self.__twitter_bearer_token = getenv('TWITTER_BEARER_TOKEN')
         self.__headers = {"Authorization": "Bearer %s" % getenv('TWITTER_BEARER_TOKEN')}
+        self.__sleep = float(getenv("TWITTER_SLEEP", .25))
 
     def __twitter_api_get(self, query, version = '2'):
         return requests.get("https://api.twitter.com/%s/%s" % (version, query), headers=self.__headers)
@@ -51,7 +52,7 @@ class TwitterAPIV2:
             else:
                 raise Exception(twitter_result.text)
             
-            time.sleep(.25)
+            time.sleep(self.__sleep)
 
         return [], None
 
@@ -69,6 +70,9 @@ class TwitterAPIV2:
             tweet_data = json.loads(twitter_result.text)
         else:
             tweet_data = []
+
+        time.sleep(self.__sleep)
+
         return tweet_data, None
 
     def add_stuff(self):
