@@ -35,7 +35,11 @@ class TwitterAPIV2:
                     if 'meta' in tweet_data:
                         next_token = tweet_data['meta'].get('next_token')
                     replies_list = []
-                    for tweet in tweet_data['data']:
+                    if isinstance(tweet_data['data'], list):
+                        tweet_list = tweet_data['data']
+                    else:
+                        tweet_list = [tweet_data['data']]
+                    for tweet in tweet_list:
                         if 'includes' in tweet_data and 'users' in tweet_data['includes']:
                             filtered_users = list(filter(lambda user: user['id'] == tweet['author_id'], tweet_data['includes']['users']))
                             if len(filtered_users) > 0:
@@ -75,7 +79,7 @@ class TwitterAPIV2:
 
         return tweet_data, None
 
-    def add_stuff(self):
+    def __add_stuff(self):
         expansions = "author_id,entities.mentions.username,geo.place_id,in_reply_to_user_id,referenced_tweets.id,referenced_tweets.id.author_id"
         tweet_fields = "author_id,conversation_id,created_at,geo,id,in_reply_to_user_id,referenced_tweets,text"
         user_fields = "name,username"
@@ -83,13 +87,13 @@ class TwitterAPIV2:
 
     @curry
     def get_replies(self, user_id, tweet_id, next_token):
-        query = "tweets/search/recent?query=conversation_id:%s&%s" % (tweet_id, self.add_stuff())
+        query = "tweets/search/recent?query=conversation_id:%s&%s" % (tweet_id, self.__add_stuff())
         return self.__twitter_result_v2(query, next_token, next_token_key = 'next_token')
         
     # TODO: don't know how to do this with V2?
     @curry
-    def get_retweets_v2(self, tweet_id, next_token):
-        query = "tweets/%s?%s" % (tweet_id, self.add_stuff())
+    def get_tweet_v2(self, tweet_id, next_token):
+        query = "tweets/%s?%s" % (tweet_id, self.__add_stuff())
         return self.__twitter_result_v2(query, next_token)
 
     @curry
@@ -99,7 +103,7 @@ class TwitterAPIV2:
 
     @curry
     def get_user_timeline(self, user_id, next_token):
-        return self.__twitter_result_v2("users/%s/tweets?%s" % (user_id, self.add_stuff()), next_token)
+        return self.__twitter_result_v2("users/%s/tweets?%s" % (user_id, self.__add_stuff()), next_token)
 
     def get_user_by_screen_name(self, screen_name):
         result, next = self.__twitter_result_v2("users/by?usernames=%s" % screen_name, None)
