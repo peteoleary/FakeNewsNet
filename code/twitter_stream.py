@@ -20,14 +20,16 @@ class TimelineCrawler(TwitterCrawler):
         writer.write(tweet)
 
     def write_one_tweet_page(self, writer, tweet_page):
-        for tweet in list(tweet_page):
+        page_list = list(tweet_page)
+        print("page len = %d" % len(page_list), flush=True)
+        for tweet in page_list:
             self.write_one_tweet(writer, tweet)
 
     def load_timeline(self, screen_name):
         depth_limit = int(os.getenv('DEPTH_LIMIT', 10))
         with jsonlines.open("dataset/twitter_%s_%s_3.json" % (screen_name,  datetime.datetime.today().strftime('%y%m%d%H%M%S')), mode='w', flush = True ) as writer:
             for tweet_page in self.twitter_timeline(screen_name):
-                print("depth limit = %d" % depth_limit)
+                print("depth limit = %d" % depth_limit, flush=True)
                 self.write_one_tweet_page(writer, tweet_page)
                 depth_limit -= 1
                 if depth_limit == 0: break

@@ -47,7 +47,7 @@ class TwitterAPIV2:
                     pass
             elif twitter_result.status_code == 429:
                 try_sleep = int(twitter_result.headers['x-rate-limit-reset']) - time.time_ns()/1000000000
-                print("Twitter rate limit, sleeping for %d seconds" % try_sleep)
+                print("__twitter_result_v2 rate limit, sleeping for %d seconds" % try_sleep, flush=True)
                 time.sleep(try_sleep)
             else:
                 raise Exception(twitter_result.text)
@@ -63,7 +63,7 @@ class TwitterAPIV2:
                 twitter_result = self.__twitter_api_get(query, version = '1.1')
             except TwythonRateLimitError as e:
                 try_sleep = int(e.retry_after) - time.time_ns()/1000000000
-                print("Twitter rate limit, sleeping for %d seconds" % try_sleep)
+                print("__twitter_result rate limit, sleeping for %d seconds" % try_sleep, flush=True)
                 time.sleep(try_sleep)
 
         if twitter_result.status_code == 200:
