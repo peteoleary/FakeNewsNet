@@ -48,7 +48,7 @@ def open_writer(p, stage):
     return jsonlines.open(p.with_name(p.stem + "_%s.json" % stage), mode='w', flush = True )
 
 def is_retweet(tweet):
-    return 'retweeted_status' in tweet
+    return 'retweeted_status' in tweet or tweet['text'].startswith('RT')
 
 def normalize_text(text):
     return re.sub('\W+', ' ', text ).lower()
@@ -61,7 +61,8 @@ def output_examples(p, screen_name):
                 'id': screen_name + '_' + str(root['id']),
                 'comments': [],
                 'labels': 1,
-                'content': root['text']
+                'content': root['text'],
+                'created_at': root['created_at']
             }
             for child in root['_children']:
                 if 'text' in child and not is_retweet(child):
@@ -76,7 +77,7 @@ def make_nodes_and_edges(tweet):
         "id": tweet['_node_num'],
         'tweet_id': tweet['id'],
         'label': tweet['_node_num'],
-        'color': "#d2b4d7",
+        'color': "#d2b4d7", # TODO: set color based on node type
         }]
     edges = []
     if '_parent_id' in tweet and tweet['_parent_id'] is not None:
