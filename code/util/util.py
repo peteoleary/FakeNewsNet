@@ -117,7 +117,21 @@ def make_news_id(prefix, url):
 
 def open_read_write_json_file(json_file_path, stage, callback):
     p = pathlib.PurePath(json_file_path)
+    line_count = 1
     with jsonlines.open(p.with_name(p.stem + "_%s.json" % stage), mode='w', flush = True ) as writer:
         with jsonlines.open(json_file_path) as reader:
             for item in reader:
-                writer.write(callback(item))
+                print("line %d" % line_count)
+                result = callback(item, writer)
+                if result is not None:
+                    writer.write(result)
+                line_count += 1
+
+def flatten(items):
+    result = []
+    for i in items:
+        if type(i) is list:
+            result += flatten(i)
+        else:
+            result += [i]
+    return result

@@ -7,7 +7,7 @@ class PolitifactRSS(ReadRSS):
     def transform_entry(self, entry):
         title_parts = entry['title'].split('-')
         title = title_parts[1].strip()
-        return {'news_id': make_news_id("politifact", entry['link']), '_type': title_parts[0].strip(), '_link': entry['link'],
+        return {'news_id': make_news_id("politifact", entry['link']), '_tag': title_parts[0].strip(), '_link': entry['link'],
             '_ruling': 'false', '_title': title,
                 '_content': entry['summary'], '_source': self.get_source_link(title)}
                 

@@ -108,3 +108,10 @@ class TwitterAPIV2:
     def get_user_by_screen_name(self, screen_name):
         result, next = self.__twitter_result_v2("users/by?usernames=%s" % screen_name, None)
         return result[0] if len(result) > 0 else None
+
+    @curry
+    def get_query(self, query, next_token):
+        query = "tweets/search/recent?query=%s&%s" % (query, self.__add_stuff())
+        return self.__twitter_result_v2(query, next_token)
+
+    

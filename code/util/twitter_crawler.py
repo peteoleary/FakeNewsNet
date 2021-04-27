@@ -9,6 +9,9 @@ class TwitterCrawler:
     def __init__(self):
             self.__twitter = TwitterAPIV2()
 
+    def twitter(self):
+        return self.__twitter
+
     def get_retweets_g(self, tweet_id):
         return self.__generator(self.__twitter.get_retweets(tweet_id))
 
@@ -41,3 +44,23 @@ class TwitterCrawler:
     def get_user_timeline_g(self, screen_name, tag):
         user = self.__twitter.get_user_by_screen_name(screen_name)
         return self.__generator(self.__twitter.get_user_timeline(user['id']))
+
+    def write_one_tweet(self, writer, tweet):
+        for retweets_page in self.get_retweets_g(tweet['id']):
+            self.write_one_tweet_page(writer, retweets_page, "retweet")
+        for reply_page in self.get_replies_g(tweet['user']['id'], tweet['id']):
+            self.write_one_tweet_page(writer, reply_page, "reply")
+        writer.write(tweet)
+
+    def write_one_tweet_page(self, writer, tweet_page, page_type = None):
+        page_list = list(tweet_page)
+        print("page len = %d" % len(page_list), flush=True)
+        for tweet in page_list:
+            if page_type:
+                tweet['_type'] = page_type
+            self.write_one_tweet(writer, tweet)
+
+    def expand_conversation(self, writer, conversation_id):
+        tweet, next_token = self.__twitter.get_tweet_v2(conversation_id, None)
+        if len(tweet) > 0:
+            self.write_one_tweet(writer, tweet[0])

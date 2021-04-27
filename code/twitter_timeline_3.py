@@ -12,19 +12,6 @@ class TimelineCrawler(TwitterCrawler):
     def twitter_timeline(self, screen_name, tag = None):
         return self.get_user_timeline_g(screen_name, tag)
 
-    def write_one_tweet(self, writer, tweet):
-        for retweets_page in self.get_retweets_g(tweet['id']):
-            self.write_one_tweet_page(writer, retweets_page)
-        for reply_page in self.get_replies_g(tweet['user']['id'], tweet['id']):
-            self.write_one_tweet_page(writer, reply_page)
-        writer.write(tweet)
-
-    def write_one_tweet_page(self, writer, tweet_page):
-        page_list = list(tweet_page)
-        print("page len = %d" % len(page_list), flush=True)
-        for tweet in page_list:
-            self.write_one_tweet(writer, tweet)
-
     def load_timeline(self, screen_name):
         depth_limit = int(os.getenv('DEPTH_LIMIT', 10))
         with jsonlines.open("dataset/twitter_%s_%s_3.json" % (screen_name,  datetime.datetime.today().strftime('%y%m%d%H%M%S')), mode='w', flush = True ) as writer:

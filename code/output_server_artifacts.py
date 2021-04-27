@@ -4,12 +4,24 @@ import sys
 from util.twitter_api_v2 import TwitterAPIV2
 import pathlib
 import re
+import dateparser
 from dotenv import load_dotenv
 load_dotenv()
 
 graph = {}
 
+COLORS = {
+    'news': '#77ab59',
+    'retweet': '#87cefa',
+    'reply': '#735144'
+}
+
+def get_color(node_type):
+    return COLORS.get(node_type, '#d2b4d7')
+
 def get_parent(tweet):
+    if '_news_id' in tweet:
+        return tweet['_news_id']
     if 'conversation_id' in tweet:
         if tweet['conversation_id'] == tweet['id']:
             return None
@@ -17,7 +29,8 @@ def get_parent(tweet):
     if is_retweet(tweet):
         retweet = tweet.get('retweeted_status') or tweet.get('referenced_tweets')
         return retweet['id']
-    raise Exception("can't find parent for %s" % tweet['id'])
+    print("can't find parent for %s" % tweet['id'])
+    return None
     
 
 def add_to_graph(tweet):
@@ -51,33 +64,40 @@ def is_retweet(tweet):
     return 'retweeted_status' in tweet or tweet['text'].startswith('RT')
 
 def normalize_text(text):
-    return re.sub('\W+', ' ', text ).lower()
+    text = re.sub(r'\w+:\/{2}[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*', '', text)
+    text = re.sub('[^\w\.]', ' ', text ).lower()
+    text = text.replace("\\n", " ")
+    return  text
 
-def output_examples(p, screen_name):
+def output_examples(p, screen_name, label):
     with (open_writer(p, 'examples')) as writer:
         for root_id in graph_roots():
             root = graph[root_id]
             result = {
-                'id': screen_name + '_' + str(root['id']),
-                'comments': [],
-                'labels': 1,
-                'content': root['text'],
-                'created_at': root['created_at']
+                'id': root['id'],
+                'labels': label,
+                'content': normalize_text(root['text']),
+                'created_at': dateparser.parse(root['created_at']).strftime('%Y-%m-%d'),
+                'comments': []
             }
             for child in root['_children']:
                 if 'text' in child and not is_retweet(child):
-                    result['comments'] += [{'comment': normalize_text(child['text'])}]
+                    result['comments'] += [{'comment': normalize_text(child['text']), 'username': child['user']['username']}]
             writer.write(result)
 
+def should_output(node):
+    return len(node['_children']) > 0
+
 def graph_roots():
-    return filter(lambda id: graph[id]['_parent_id'] is None and not is_retweet(graph[id]), graph)
+    return filter(lambda id: graph[id]['_parent_id'] is None and not is_retweet(graph[id]) and should_output(graph[id]), graph)
 
 def make_nodes_and_edges(tweet):
     nodes = [{
         "id": tweet['_node_num'],
+        "link": tweet.get('link'),
         'tweet_id': tweet['id'],
         'label': tweet['_node_num'],
-        'color': "#d2b4d7", # TODO: set color based on node type
+        'color': get_color(tweet.get('_type')), # TODO: set color based on node type
         }]
     edges = []
     if '_parent_id' in tweet and tweet['_parent_id'] is not None:
@@ -95,7 +115,7 @@ def output_propagation_graph(p, screen_name):
             root = graph[root_id]
             nodes, edges = make_nodes_and_edges(root)
             result = {
-                'news_id': screen_name + '_' + root['id'],
+                'news_id': root['id'],
                 'graph' : {
                     'nodes': nodes,
                     'edges': edges
@@ -103,14 +123,14 @@ def output_propagation_graph(p, screen_name):
             }
             writer.write(result)
 
-def open_read_write_json_file(json_file_path, screen_name):
+def process_flat_tweet_file(json_file_path, screen_name, label):
     with jsonlines.open(json_file_path) as reader:
         for item in reader:
             add_to_graph(item)
     traverse_graph()
     p = pathlib.PurePath(json_file_path)
-    output_examples(p, screen_name)
+    output_examples(p, screen_name, label)
     output_propagation_graph(p, screen_name)
 
 if __name__ == "__main__":
-    open_read_write_json_file(sys.argv[1], sys.argv[2])
+    process_flat_tweet_file(sys.argv[1], sys.argv[2], sys.argv[3])
