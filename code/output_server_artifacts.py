@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 graph = {}
+node_num = 1
 
 COLORS = {
     'news': '#77ab59',
@@ -34,12 +35,15 @@ def get_parent(tweet):
     
 
 def add_to_graph(tweet):
+    global graph
+    global node_num
     if tweet['id'] in graph:
         print("tweet id %s already in graph" % tweet['id'])
         return
     tweet['_parent_id'] = None
     tweet['_children'] = []
-    tweet['_node_num'] = len(graph) + 1
+    tweet['_node_num'] = node_num
+    node_num += 1
     graph[str(tweet['id'])] = tweet    
 
 def traverse_graph():
@@ -76,7 +80,8 @@ def output_examples(p, screen_name, label):
             result = {
                 'id': root['id'],
                 'labels': label,
-                'content': normalize_text(root['text']),
+                'title': root['title'],
+                'content':  normalize_text(root['text']),
                 'created_at': dateparser.parse(root['created_at']).strftime('%Y-%m-%d'),
                 'comments': []
             }
